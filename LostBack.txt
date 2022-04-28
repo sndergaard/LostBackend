@@ -1,0 +1,45 @@
+// SCADA_CWS_Backend.Controllers.OverviewController
+// Token: 0x06000061 RID: 97 RVA: 0x00002804 File Offset: 0x00000A04
+[HttpPost]
+[Route("Update")]
+public WTG UpdatePark([FromForm] IFormFile file)
+{
+	WTG wtg = new WTG();
+	Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+	using (MemoryStream memoryStream = new MemoryStream())
+	{
+		file.CopyTo(memoryStream);
+		memoryStream.Position = 0L;
+		this.context.tbData.RemoveRange(this.context.tbData);
+		using (IExcelDataReader excelDataReader = ExcelReaderFactory.CreateReader(memoryStream, null))
+		{
+			while (excelDataReader.Read())
+			{
+				if (excelDataReader.Depth != 0)
+				{
+					TurbineData turbineData = new TurbineData();
+					turbineData.Equipment = new Equipment();
+					Equipment equipment = new Equipment();
+					MarineHelicopterCorridorLights marineHelicopterCorridorLights = new MarineHelicopterCorridorLights();
+					MarineLanterns marineLanterns = new MarineLanterns();
+					VisibilitySensor visibilitySensor = new VisibilitySensor();
+					turbineData.Name = excelDataReader.GetValue(1).ToString();
+					turbineData.Type = excelDataReader.GetValue(2).ToString();
+					turbineData.Lat = Convert.ToDouble(excelDataReader.GetValue(3).ToString());
+					turbineData.Long = Convert.ToDouble(excelDataReader.GetValue(4).ToString());
+					marineHelicopterCorridorLights.Amount = "";
+					visibilitySensor.Amount = "";
+					marineLanterns.Amount = "";
+					equipment.MarineHelicopterCorridorLights = marineHelicopterCorridorLights;
+					equipment.MarineLanterns = marineLanterns;
+					equipment.VisibilitySensor = visibilitySensor;
+					turbineData.Equipment = equipment;
+					this.context.tbData.Add(turbineData);
+					wtg.Turbines.Add(turbineData);
+				}
+			}
+			this.context.SaveChanges();
+		}
+	}
+	return wtg;
+}
