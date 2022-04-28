@@ -1,0 +1,37 @@
+// SCADA_CWS_Backend.Controllers.OverviewController
+// Token: 0x0600005D RID: 93 RVA: 0x00002588 File Offset: 0x00000788
+[HttpGet]
+public List<TurbineData> Get()
+{
+	WTG wtg = new WTG();
+	Stopwatch stopwatch = Stopwatch.StartNew();
+	Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+	string str = "C:\\Users\\emil.sondergaard\\OneDrive - DIS Group Holding A S\\Skrivebord\\";
+	string str2 = "Exercise.xlsx";
+	WorkBook workBook = WorkBook.Load(str + str2);
+	WorkSheet defaultWorkSheet = workBook.DefaultWorkSheet;
+	for (int i = 8; i < defaultWorkSheet.RowCount; i++)
+	{
+		TurbineData turbineData = new TurbineData();
+		turbineData.Equipment = new Equipment();
+		Equipment equipment = new Equipment();
+		MarineHelicopterCorridorLights marineHelicopterCorridorLights = new MarineHelicopterCorridorLights();
+		MarineLanterns marineLanterns = new MarineLanterns();
+		VisibilitySensor visibilitySensor = new VisibilitySensor();
+		turbineData.Name = defaultWorkSheet["B" + i.ToString()].ToString();
+		turbineData.Lat = Convert.ToDouble(defaultWorkSheet["F" + i.ToString()].Value);
+		turbineData.Long = Convert.ToDouble(defaultWorkSheet["G" + i.ToString()].Value);
+		turbineData.Type = defaultWorkSheet["C" + i.ToString()].ToString();
+		marineHelicopterCorridorLights.Amount = defaultWorkSheet["X" + i.ToString()].ToString();
+		visibilitySensor.Amount = defaultWorkSheet["O" + i.ToString()].ToString();
+		marineLanterns.Amount = defaultWorkSheet["U" + i.ToString()].ToString();
+		equipment.MarineHelicopterCorridorLights = marineHelicopterCorridorLights;
+		equipment.MarineLanterns = marineLanterns;
+		equipment.VisibilitySensor = visibilitySensor;
+		turbineData.Equipment = equipment;
+		wtg.Turbines.Add(turbineData);
+	}
+	long elapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+	Console.WriteLine(elapsedMilliseconds);
+	return wtg.Turbines;
+}
